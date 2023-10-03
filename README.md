@@ -13,7 +13,9 @@ Installation Steps
 
 2. To run ControlNet, you will need to install the extension here: https://github.com/Mikubill/sd-webui-controlnet
 
-3. To run the Streamlit app
+3. Install the .safetensors and .yaml file for QR Monster here: https://huggingface.co/monster-labs/control_v1p_sd15_qrcode_monster
+
+4. To run the Streamlit app
 ```
 streamlit run app.py
 ```
