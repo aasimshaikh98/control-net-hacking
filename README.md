@@ -2,11 +2,6 @@
 
 Streamlit Wrapper over the ControlNet API exposed in AUTOMATIC1111's web ui
 
-![Kapture 2023-10-01 at 21 56 12](https://github.com/JustinChavez/control-net-hacking/assets/8655231/eef529cf-dc49-4487-af80-e19de9e1b3a5)
-
-
-Streamlit Wrapper over the ControlNet API exposed in AUTOMATIC1111's web ui
-
 # Installation Steps
 
 1. This is the Web UI repo we are using to run Stable Diffusion https://github.com/AUTOMATIC1111/stable-diffusion-webui
