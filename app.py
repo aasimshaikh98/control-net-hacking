@@ -1,5 +1,6 @@
 import streamlit as st
 import io
+from utils import split_and_combine
 from controlnet import ControlnetRequest
 import shutil
 import os
@@ -9,7 +10,7 @@ from faker import Faker
 
 # Create a list to store prompts
 if 'prompts' not in st.session_state:
-    st.session_state['prompts'] = ["NYC skyline photorealistic cyberpunk bright lights", "amazon rainforest, jungle, bright, photorealistic, animals, foggy, mysterious, crisp, 8K, high quality, textured, finely detailed, film, grain", "Anime, fantasy, sword fighting, samurai army, large battlefield, intense, crisp, 8K, high quality, japanese background, multiple people, zoom out, chaotic"]
+    st.session_state['prompts'] = ["Undersea marine life", "NYC skyline", "Amazon Rainforest", "Anime sword battle"]
 
 # Define Prompts
 st.title("Prompts")
@@ -38,12 +39,15 @@ if uploaded_file is not None:
 
     # Parameters to use
     st.write("Enter numerical values for the following parameter. Use a comma if you would like to permutate over multiple values")
-    st_steps = st.slider("Steps to use to generate the image", min_value=1, max_value=150, value=50, step=1)
-    st_enable_hr = st.checkbox("Enable High Resolution (warning takes much longer)")
+    st_steps = st.text_input("Steps", value=20, help="Values between 1-150")
+    st_control_weight = st.text_input("Control weight", value=1, help="Values between 0.00-2.00")
+    st_starting_control_step = st.text_input("Starting Control Step", value = "0", help="Values between 0.00-1.00")
+    st_ending_control_step = st.text_input("Ending Control Step", value = "1", help="Values between 0.00-1.00")
+    st_enable_hr = st.checkbox("Enable High Resolution")
     if st_enable_hr:
-        st_hr_steps = st.slider("Number of High Resolution Steps to perform",  min_value=1, max_value=150, value=10, step=1)
+        st_hr_steps = st.text_input("Hi Res Steps", value="0", help="Values between 1 and 150, Enter 0 to have the same steps as sampler")
     else:
-        st_hr_steps = None
+        st_hr_steps = '0'
 
     if st.button("Start Processing"):
         fake = Faker()
@@ -69,20 +73,38 @@ if uploaded_file is not None:
         my_bar = st.progress(0)
 
         for index, prompt in enumerate(prompts):
-            control_net = ControlnetRequest(prompt, path)
-            control_net.build_body()
-            control_net.update_body({'steps': st_steps, 'enable_hr': st_enable_hr, 'hr_second_pass_steps': st_hr_steps})
-            output = control_net.send_request()
-            result = output['images'][0]
-
-            image = Image.open(io.BytesIO(base64.b64decode(result.split(",", 1)[0])))
-            gen_image_path = os.path.join(random_subdirectory_path, f"gen_image_{index}.png")
-            image.save(gen_image_path)
+            params_to_combine = {'steps': st_steps, "weight": st_control_weight,"guidance_start": st_starting_control_step, "guidance_end": st_ending_control_step, "hr_second_pass_steps":st_hr_steps}
             
+            list_of_params_to_run = split_and_combine(params_to_combine)
+            for index_2, params in enumerate(list_of_params_to_run):
+
+                control_net = ControlnetRequest(prompt, path)
+                control_net.build_body()
+                control_net.update_sd({
+                    "steps": int(params["steps"]),
+                    "enable_hr": st_enable_hr,
+                    "hr_second_pass_steps": int(params["hr_second_pass_steps"])}
+                    )
+                control_net.update_cn({
+                        "weight": float(params["weight"]),
+                        "guidance_start": float(params["guidance_start"]),
+                        "guidance_end": float(params["guidance_end"])
+                    }
+                )
+                output = control_net.send_request()
+                result = output['images'][0]
+
+                image = Image.open(io.BytesIO(base64.b64decode(result.split(",", 1)[0])))
+                gen_image_path = os.path.join(random_subdirectory_path, f"gen_image_{index}_{index_2}.png")
+                image.save(gen_image_path)
+
+                st.write(prompt)
+                st.write(params)
+                st.image(gen_image_path)
+                
             # Update the progress bar
             operations_completed += 1
             progress_percent = int((operations_completed / total_operations) * 100)
             my_bar.progress(progress_percent)
 
-            st.write(prompt)
-            st.image(gen_image_path)
+            

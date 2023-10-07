@@ -26,18 +26,17 @@ class ControlnetRequest:
             "cfg_scale": 7,
             "width": 512,
             "height": 512,
-            "refiner_checkpoint": "icbinpICantBelieveIts_seco.safetensors [fa1224c923]",
             "sampler_name": "DPM++ 2M Karras",
+            "steps": 15, # Sampling steps
             "cfg_scale": 7,
-            "enable_hr": False,
+            "enable_hr": False, # Hires.fix
             "hr_scale": 2,
             "hr_upscaler": "Latent",
-            "hr_second_pass_steps": 10,
+            "hr_second_pass_steps": 10, # Hires steps (0 for same steps as Sampler)
             "denoising_strength": 1,
-            "steps": 15,
             "batch_size": 1,
-            "sd_model_name": "icbinpICantBelieveIts_seco",
-            "sd_model_hash": "fa1224c923",
+            "sd_model_name": "icbinpICantBelieveIts_seco", # Replace with SD checkpoint
+            "sd_model_hash": "fa1224c923", # Replace with SD checkpoint
             "seed": -1,
             "seed_resize_from_w": -1,
             "seed_resize_from_h": -1,
@@ -48,14 +47,14 @@ class ControlnetRequest:
                         {
                             "enabled": True,
                             "module": "invert (from white bg & black line)",
-                            "model": "control_v1p_sd15_qrcode_monster [a6e58995]",
-                            "weight": 1.25,
+                            "model": "control_v1p_sd15_qrcode_monster_v2 [5e5778cb]", # ControlNet QR Model
+                            "weight": 1.25, # Control Weight
                             "image": self.read_image(),
                             "resize_mode": "Crop and Resize",
                             "lowvram": False,
                             "processor_res": 512,
-                            "guidance_start": 0.0,
-                            "guidance_end": 0.75,
+                            "guidance_start": 0.0, # Starting Control Step
+                            "guidance_end": 0.75, # Ending Control Step
                             "control_mode": "Balanced",
                             "pixel_perfect": False
                         }
@@ -64,10 +63,14 @@ class ControlnetRequest:
             }
         }
     
-    def update_body(self, update_dict):
+    def update_sd(self, update_dict):
         self.body.update(update_dict)
+    
+    def update_cn(self, update_dict):
+        self.body["alwayson_scripts"]["controlnet"]["args"][0].update(update_dict)
 
     def send_request(self):
+        print(self.body)
         response = requests.post(url=self.url, json=self.body)
         return response.json()
 

@@ -1,6 +1,8 @@
 # control-net-hacking
 
-Installation Steps
+Streamlit Wrapper over the ControlNet API exposed in AUTOMATIC1111's web ui
+
+# Installation Steps
 
 1. This is the Web UI repo we are using to run Stable Diffusion https://github.com/AUTOMATIC1111/stable-diffusion-webui
 - To specifically install this on Apple Silicon (M1/M2) follow these instructions: https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Installation-on-Apple-Silicon
@@ -10,5 +12,6 @@ Installation Steps
 
 3. To run the Streamlit app
 ```
+pip install -r requirements.txt
 streamlit run app.py
 ```
